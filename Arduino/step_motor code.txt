@@ -1,0 +1,55 @@
+#include <IRremote.h>
+#include <Stepper.h>
+
+const int steps = 2048; // 360도
+unsigned long current_time, prev_time = 0;
+int remote_pin = A0;
+
+IRrecv irrecv(remote_pin);
+decode_results results, keep;
+Stepper myStepper(steps, 11, 9, 10, 8);
+// 모터 드라이브에 연결된 핀 IN4, IN2, IN3, IN1 (핀연결 설정)
+
+void setup() {
+  myStepper.setSpeed(15);  //모터의 회전속도 설정
+  irrecv.enableIRIn(); // 리모컨 시작
+  Serial.begin(9600);     //시리얼모니터
+  Serial.println("Setting clear!");
+}
+
+void loop() {
+  motor_line();
+}
+
+void motor_line()
+{
+  while(1)
+  {
+    current_time = millis();                                  // 밀리초 단위로 시작후 경과시간 return
+    
+    if(irrecv.decode(&results) || (keep.value == 3772784863))   // 1번 버튼 눌린상태 or 새로운 버튼 입력 시 
+    {
+      Serial.println(results.value);
+       if (results.value == 3772811383)                         // 0이 눌리면 반복문 탈출해서 대기 상태로 돌아감
+       {
+          irrecv.resume();
+          keep.value = 0;
+          break;
+       }
+       if(results.value == 3772784863)                          // 1번 버튼이 눌리면
+       {  keep = results; }                                   // 재진입을 위해 keep에 results값 저장
+       
+       if(current_time - prev_time > 3000)                    // 3초 마다 1초간 정지
+       { 
+          prev_time = current_time;
+          delay(1000);                                        // 1초간 정지
+       }
+       
+       irrecv.resume();
+       
+       myStepper.step(-51);   
+    }
+
+  }
+ 
+}

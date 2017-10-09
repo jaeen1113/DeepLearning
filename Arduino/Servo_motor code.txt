@@ -1,0 +1,31 @@
+#include <Servo.h>
+
+// 서보모터, 리모컨 핀 셋
+int servo_pin = A1;
+
+Servo servo;
+
+void setup() {
+  servo.attach(servo_pin);
+  Serial.begin(9600);
+  Serial.println("Setting clear!");
+}
+
+void loop() {
+  servo.write(0);
+  if(Serial.available())
+    control_servo();
+
+}
+
+void control_servo()
+{
+  int LR = Serial.parseInt();
+  Serial.println(LR);
+  if (LR == 1)
+  {
+      servo.write(135);
+      delay(4000);
+  }
+  LR = 0;
+}
